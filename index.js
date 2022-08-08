@@ -1053,7 +1053,7 @@ app.post("/users/:name/ban", checkLoggedIn(), async function (req, res) {
           `You have been unbanned.`
         );
       } else {
-        await users.update({ _id: userDB._id }, { $set: { banned: false } });
+        await users.update({ _id: userDB._id }, { $set: { banned: true } });
         res.json({
           ok: "banned",
           action: "ban"
