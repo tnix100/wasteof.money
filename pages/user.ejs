@@ -192,31 +192,34 @@
     }
 
     async function msg(user) {
-        console.log(`gonna msg ${user}`)
-        var msgres = await fetch(`/users/${user}/msg`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
-            },
-            body: JSON.stringify({ content: prompt("Message:") })
-        })
-        var msgjson = await msgres.json()
-        console.log(msgjson)
-        if (msgjson.ok) {
-            Swal.fire({
-                icon: 'success',
-                title: 'Sent message',
-                text: msgjson.ok
+        var msg_content = prompt("Message:")
+        if (msg_content !== null) {
+            console.log(`gonna msg ${user}`)
+            var msgres = await fetch(`/users/${user}/msg`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ content: prompt("Message:") })
             })
-        }
-        if (msgjson.error) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Failed to message',
-                text: msgjson.error,
-                footer: '<a href="https://github.com/jeffalo/wasteof.money/issues" target="_blank" rel="noopener">Report issues</a>'
-            })
+            var msgjson = await msgres.json()
+            console.log(msgjson)
+            if (msgjson.ok) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Sent message',
+                    text: msgjson.ok
+                })
+            }
+            if (msgjson.error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Failed to message',
+                    text: msgjson.error,
+                    footer: '<a href="https://github.com/jeffalo/wasteof.money/issues" target="_blank" rel="noopener">Report issues</a>'
+                })
+            }
         }
     }
 
