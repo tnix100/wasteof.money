@@ -62,7 +62,7 @@ export default {
 			<span :data-post-id="post._id" class="iconify inline-block hover:text-red-400 transition-color duration-200 cursor-pointer" data-icon="uil:heart" data-inline="true"></span>
 			</span>
 			<span :data-post-count-id="post._id">{{ post.loves.length }}</span>
-			<span v-if="post.poster.id == loggedInUserId" @click="deletePost" tabindex="0">
+			<span v-if="post.poster.id == loggedInUserId || loggedInUser.admin" @click="deletePost" tabindex="0">
 				<span :data-post-id="post._id" class="iconify inline-block hover:text-red-400 transition-color duration-200 cursor-pointer float-right" data-icon="uil:trash" data-inline="true"></span>
 			</span>
 		</div>

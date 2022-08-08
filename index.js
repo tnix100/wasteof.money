@@ -269,13 +269,13 @@ app.post(
       const user = await findUserData(username);
 
       if (user) {
-        if (res.locals.requester && res.locals.requester.admin) {
+        if (user.banned) {
+          res.status(403).json({ error: "user is currently banned" });
+        } else if (res.locals.requester && res.locals.requester.admin) {
           var token = makeToken(32);
           addToken(token, user._id);
           res.cookie("token", token);
           res.json({ ok: "Logged in successfully!" });
-        } else if (user.banned) {
-          res.status(403).json({ error: "you are banned from wasteof" });
         } else {
           bcrypt.compare(password, user.password, function (err, result) {
             if (result) {
@@ -1026,6 +1026,27 @@ app.post("/users/:name/follow", checkLoggedIn(), async function (req, res) {
   }
 });
 
+app.post("/users/:name/msg", checkLoggedIn(), async function (req, res) {
+  var user = res.locals.requester;
+  if (req.xhr && user.admin) {
+    var userDB = await findUserData(req.params.name)
+    if (userDB) {
+      addMessage(
+        userDB._id,
+        req.body.content
+      );
+      res.json({
+        ok: "sent message to user",
+        action: "message"
+      });
+    } else {
+      res.status(404).json({ error: "no user found" });
+    }
+  } else {
+    res.status(403).json({ error: "must be requested with xhr and must be an admin" });
+  }
+});
+
 app.post("/users/:name/ban", checkLoggedIn(), async function (req, res) {
   var user = res.locals.requester;
   if (req.xhr && user.admin) {
@@ -1034,7 +1055,7 @@ app.post("/users/:name/ban", checkLoggedIn(), async function (req, res) {
       if (userDB.banned) {
         await users.update({ _id: userDB._id }, { $set: { banned: false } });
         res.json({
-          ok: "now unbanned",
+          ok: "successfully unbanned user",
           action: "unban"
         });
         addMessage(
@@ -1044,12 +1065,46 @@ app.post("/users/:name/ban", checkLoggedIn(), async function (req, res) {
       } else {
         await users.update({ _id: userDB._id }, { $set: { banned: true } });
         res.json({
-          ok: "banned",
+          ok: "successfully banned user",
           action: "ban"
         });
         addMessage(
           userDB._id,
           `You have been banned.`
+        );
+      }
+    } else {
+      res.status(404).json({ error: "no user found" });
+    }
+  } else {
+    res.status(403).json({ error: "must be requested with xhr and must be an admin" });
+  }
+});
+
+app.post("/users/:name/admin", checkLoggedIn(), async function (req, res) {
+  var user = res.locals.requester;
+  if (req.xhr && user.admin) {
+    var userDB = await findUserData(req.params.name)
+    if (userDB) {
+      if (userDB.admin) {
+        await users.update({ _id: userDB._id }, { $set: { admin: false } });
+        res.json({
+          ok: "successfully demoted user",
+          action: "demote"
+        });
+        addMessage(
+          userDB._id,
+          `You have been demoted from admin.`
+        );
+      } else {
+        await users.update({ _id: userDB._id }, { $set: { admin: true } });
+        res.json({
+          ok: "successfully promoted user",
+          action: "promote"
+        });
+        addMessage(
+          userDB._id,
+          `You have been promoted to admin.`
         );
       }
     } else {

@@ -24,19 +24,29 @@
         </button>
         <% } %>
         <% if(loggedInUser && loggedInUser.admin) { %>
+        <button data-user='<%= user.name %>' id='msg'
+            class="group relative inline-block py-2 px-4 border border-transparent text-sm leading-5 font-medium rounded-md text-white <%= true == false? 'bg-gray-500 hover:bg-gray-500' : 'bg-indigo-500 hover:bg-indigo-500' %> transition duration-150 ease-in-out">
+            <span class="iconify inline-block mr-1" data-icon="uil:user-plus" data-inline="true"></span>
+            <span class='inline-block'
+                id='msg-text'>Message</span>
+        </button>
         <button data-user='<%= user.name %>' id='ban'
             class="group relative inline-block py-2 px-4 border border-transparent text-sm leading-5 font-medium rounded-md text-white <%= user.banned? 'bg-gray-500 hover:bg-gray-500' : 'bg-indigo-500 hover:bg-indigo-500' %> transition duration-150 ease-in-out">
             <span class="iconify inline-block mr-1" data-icon="uil:user-plus" data-inline="true"></span>
             <span class='inline-block'
                 id='ban-text'><%= user.banned? 'Unban' : 'Ban' %></span>
         </button>
-        <% } %>
-        <% if(loggedInUser && loggedInUser.admin && !user.banned) { %>
         <button data-user='<%= user.name %>' id='impersonate'
             class="group relative inline-block py-2 px-4 border border-transparent text-sm leading-5 font-medium rounded-md text-white <%= true == false? 'bg-gray-500 hover:bg-gray-500' : 'bg-indigo-500 hover:bg-indigo-500' %> transition duration-150 ease-in-out">
             <span class="iconify inline-block mr-1" data-icon="uil:user-plus" data-inline="true"></span>
             <span class='inline-block'
                 id='impersonate-text'>Impersonate</span>
+        </button>
+        <button data-user='<%= user.name %>' id='admin'
+            class="group relative inline-block py-2 px-4 border border-transparent text-sm leading-5 font-medium rounded-md text-white <%= user.admin? 'bg-gray-500 hover:bg-gray-500' : 'bg-indigo-500 hover:bg-indigo-500' %> transition duration-150 ease-in-out">
+            <span class="iconify inline-block mr-1" data-icon="uil:user-plus" data-inline="true"></span>
+            <span class='inline-block'
+                id='admin-text'><%= user.admin? 'Demote' : 'Promote' %></span>
         </button>
         <% } %>
         <p class="text-gray-700"><a :href='`/users/${user}/followers`'><span id='follower-count'><%= user.followers ? user.followers.length.toString() : '0' %></span> followers</a> | <a :href='`/users/${user}/following`'><span id='following-count'><%= user.following ? user.following.length.toString() : '0' %></span> following</a></p> <!-- todo: make api also find who the user is following -->
@@ -115,12 +125,19 @@
     })
 
     var followButton = document.querySelector('#follow')
+    var msgButton = document.querySelector('#msg')
     var banButton = document.querySelector('#ban')
     var impersonateButton = document.querySelector('#impersonate')
+    var adminButton = document.querySelector('#admin')
 
     if (followButton) {
         followButton.addEventListener('click', e => {
             follow(followButton.dataset.user)
+        })
+    }
+    if (msgButton) {
+        msgButton.addEventListener('click', e => {
+            msg(msgButton.dataset.user)
         })
     }
     if (banButton) {
@@ -131,6 +148,11 @@
     if (impersonateButton) {
         impersonateButton.addEventListener('click', e => {
             impersonate(impersonateButton.dataset.user)
+        })
+    }
+    if (adminButton) {
+        adminButton.addEventListener('click', e => {
+            admin(adminButton.dataset.user)
         })
     }
 
@@ -169,6 +191,35 @@
         }
     }
 
+    async function msg(user) {
+        console.log(`gonna msg ${user}`)
+        var msgres = await fetch(`/users/${user}/msg`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: JSON.stringify({ content: prompt("Message:") })
+        })
+        var msgjson = await msgres.json()
+        console.log(msgjson)
+        if (msgjson.ok) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Sent message',
+                text: msgjson.ok
+            })
+        }
+        if (msgjson.error) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Failed to message',
+                text: msgjson.error,
+                footer: '<a href="https://github.com/jeffalo/wasteof.money/issues" target="_blank" rel="noopener">Report issues</a>'
+            })
+        }
+    }
+
     async function ban(user) {
         console.log(`gonna ban ${user}`)
         var banres = await fetch(`/users/${user}/ban`, {
@@ -182,11 +233,21 @@
         console.log(banjson)
         if (banjson.ok) {
             if (banjson.action == 'ban') {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Banned user',
+                    text: banjson.ok
+                })
                 document.getElementById('ban-text').innerText = `Unban`
                 banButton.classList.remove('bg-indigo-500', 'hover:bg-indigo-500')
                 banButton.classList.add('bg-gray-500', 'hover:bg-gray-500')
             }
             if (banjson.action == 'unban') {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Unbanned user',
+                    text: banjson.ok
+                })
                 document.getElementById('ban-text').innerText = `Ban`
                 banButton.classList.remove('bg-gray-500', 'hover:bg-gray-500')
                 banButton.classList.add('bg-indigo-500', 'hover:bg-indigo-500')
@@ -221,6 +282,49 @@
                 icon: 'error',
                 title: 'Failed to impersonate',
                 text: impersonatejson.error,
+                footer: '<a href="https://github.com/jeffalo/wasteof.money/issues" target="_blank" rel="noopener">Report issues</a>'
+            })
+        }
+    }
+
+    async function admin(user) {
+        console.log(`gonna make ${user} admin`)
+        var adminres = await fetch(`/users/${user}/admin`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        var adminjson = await adminres.json()
+        console.log(adminjson)
+        if (adminjson.ok) {
+            if (adminjson.action == 'promote') {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Promoted user',
+                    text: adminjson.ok
+                })
+                document.getElementById('admin-text').innerText = `Demote`
+                adminButton.classList.remove('bg-indigo-500', 'hover:bg-indigo-500')
+                adminButton.classList.add('bg-gray-500', 'hover:bg-gray-500')
+            }
+            if (adminjson.action == 'demote') {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Demoted user',
+                    text: adminjson.ok
+                })
+                document.getElementById('admin-text').innerText = `Promote`
+                adminButton.classList.remove('bg-gray-500', 'hover:bg-gray-500')
+                adminButton.classList.add('bg-indigo-500', 'hover:bg-indigo-500')
+            }
+        }
+        if (adminjson.error) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Failed to promote/demote',
+                text: adminjson.error,
                 footer: '<a href="https://github.com/jeffalo/wasteof.money/issues" target="_blank" rel="noopener">Report issues</a>'
             })
         }
