@@ -254,7 +254,6 @@ app.post(
   checkLoggedOut((req, res) => {
     userCookie = req.cookies.token;
     removeToken(userCookie);
-    res.cookie("token", "");
   }),
   rateLimit({
     windowMs: 60000,
@@ -308,7 +307,6 @@ app.post(
   checkLoggedOut((req, res) => {
     userCookie = req.cookies.token;
     removeToken(userCookie);
-    res.cookie("token", "");
   }),
   rateLimit({
     windowMs: 3600000,
