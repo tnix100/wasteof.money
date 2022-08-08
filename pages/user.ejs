@@ -23,6 +23,20 @@
                 id='follow-text'><%= user.followers.includes(loggedInUser._id.toString())? 'Unfollow' : 'Follow' %></span>
         </button>
         <% } %>
+        <% if(loggedInUser && loggedInUser.admin) { %>
+            <button data-user='<%= user.name %>' id='ban'
+                class="group relative inline-block py-2 px-4 border border-transparent text-sm leading-5 font-medium rounded-md text-white <%= user.banned? 'bg-gray-500 hover:bg-gray-500' : 'bg-indigo-500 hover:bg-indigo-500' %> transition duration-150 ease-in-out">
+                <span class="iconify inline-block mr-1" data-icon="uil:user-plus" data-inline="true"></span>
+                <span class='inline-block'
+                    id='ban-text'><%= user.banned? 'Unban' : 'Ban' %></span>
+            </button>
+            <button data-user='<%= user.name %>' id='impersonate'
+                class="group relative inline-block py-2 px-4 border border-transparent text-sm leading-5 font-medium rounded-md text-white 'bg-indigo-500 hover:bg-indigo-500' transition duration-150 ease-in-out">
+                <span class="iconify inline-block mr-1" data-icon="uil:user-plus" data-inline="true"></span>
+                <span class='inline-block'
+                    id='impersonate-text'>Impersonate</span>
+            </button>
+        <% } %>
         <p class="text-gray-700"><a :href='`/users/${user}/followers`'><span id='follower-count'><%= user.followers ? user.followers.length.toString() : '0' %></span> followers</a> | <a :href='`/users/${user}/following`'><span id='following-count'><%= user.following ? user.following.length.toString() : '0' %></span> following</a></p> <!-- todo: make api also find who the user is following -->
         <p class="text-gray-700 italic">id: <%= user._id %></p>
         <post v-for="post in posts" v-bind:key="post._id" v-bind:post="post" v-bind:logged-in-user-id="loggedInUserID"></post>
@@ -99,10 +113,20 @@
     })
 
     var followButton = document.querySelector('#follow')
+    var banButton = document.querySelector('#ban')
+    var impersonateButton = document.querySelector('#impersonate')
 
     if (followButton) {
         followButton.addEventListener('click', e => {
             follow(followButton.dataset.user)
+        })
+    } else if (banButton) {
+        banButton.addEventListener('click', e => {
+            ban(banButton.dataset.user)
+        })
+    } else if (impersonateButton) {
+        impersonateButton.addEventListener('click', e => {
+            impersonate(impersonateButton.dataset.user)
         })
     }
 
@@ -136,6 +160,62 @@
                 icon: 'error',
                 title: 'Failed to follow',
                 text: followjson.error,
+                footer: '<a href="https://github.com/jeffalo/wasteof.money/issues" target="_blank" rel="noopener">Report issues</a>'
+            })
+        }
+    }
+
+    async function ban(user) {
+        console.log(`gonna ban ${user}`)
+        var banres = await fetch(`/users/${user}/ban`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        var banjson = await banres.json()
+        console.log(banjson)
+        if (banjson.ok) {
+            if (banjson.action == 'ban') {
+                document.getElementById('ban-text').innerText = `Unban`
+                banButton.classList.remove('bg-indigo-500', 'hover:bg-indigo-500')
+                banButton.classList.add('bg-gray-500', 'hover:bg-gray-500')
+            }
+            if (banjson.action == 'unban') {
+                document.getElementById('ban-text').innerText = `Ban`
+                banButton.classList.remove('bg-gray-500', 'hover:bg-gray-500')
+                banButton.classList.add('bg-indigo-500', 'hover:bg-indigo-500')
+            }
+        }
+        if (banjson.error) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Failed to ban',
+                text: banjson.error,
+                footer: '<a href="https://github.com/jeffalo/wasteof.money/issues" target="_blank" rel="noopener">Report issues</a>'
+            })
+        }
+    }
+
+    async function impersonate(user) {
+        console.log(`gonna impersonate ${user}`)
+        var impersonateres = await fetch(`/login`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        var impersonatejson = await impersonateres.json()
+        console.log(impersonatejson)
+        if (impersonatejson.ok) {
+            document.location.href = '/'
+        }
+        if (impersonatejson.error) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Failed to impersonate',
+                text: impersonatejson.error,
                 footer: '<a href="https://github.com/jeffalo/wasteof.money/issues" target="_blank" rel="noopener">Report issues</a>'
             })
         }

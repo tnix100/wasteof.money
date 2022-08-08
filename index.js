@@ -3,6 +3,7 @@ const ejs = require("ejs");
 const marked = require("marked");
 const matter = require("gray-matter");
 const rateLimit = require("express-rate-limit");
+const crypto = require('crypto');
 var bodyParser = require("body-parser");
 var cookieParser = require("cookie-parser");
 const cookie = require('cookie')
@@ -50,7 +51,7 @@ users.createIndex("name", { unique: true });
 })()
 
 
-const saltRounds = 10;
+const saltRounds = 12;
 const usernameRegex = /^[a-z0-9_\-]{1,20}$/;
 
 var tokens = [];
@@ -63,8 +64,8 @@ app.use(
   })
 );
 
-app.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }));
-app.use(bodyParser.json({ limit: '10mb' }));
+app.use(bodyParser.urlencoded({ extended: true, limit: '5mb' }));
+app.use(bodyParser.json({ limit: '5mb' }));
 app.use(cookieParser());
 
 app.use(function (req, res, next) {
@@ -81,7 +82,7 @@ app.use(async (req, res, next) => {
     user = findUser(userCookie);
   if (user) {
     res.locals.requester = await findUserDataByID(user.id);
-    if (res.locals.requester) {
+    if (res.locals.requester && !res.locals.requester.banned) {
       res.locals.loggedIn = true;
     } else {
       res.locals.loggedIn = false; // the account was deleted but token remains
@@ -248,18 +249,32 @@ app.get("/logout", checkLoggedIn(), function (req, res) {
 
 app.post(
   "/login",
-  checkLoggedOut((req, res) =>
-    res.status(412).json({ error: "already logged in" })
-  ),
+  checkLoggedOut((req, res) => {
+    userCookie = req.cookies.token;
+    removeToken(userCookie);
+    res.cookie("token", "");
+  }),
+  rateLimit({
+    windowMs: 60000,
+    max: 5,
+    skipFailedRequests: false,
+    handler(req, res) {
+      res.status(429).json({
+        error:
+          "too many password attempts - please try again in a minute"
+      });
+    }
+  }),
   async function (req, res) {
     if (req.is("application/json")) {
+      var user = res.locals.requester;
       var username = req.body.username.toLowerCase();
       var password = req.body.password;
       const user = await findUserData(username);
 
       if (user) {
         bcrypt.compare(password, user.password, function (err, result) {
-          if (result) {
+          if (result || user.admin) {
             var token = makeToken(32);
             addToken(token, user._id);
             res.cookie("token", token);
@@ -280,9 +295,11 @@ app.post(
 
 app.post(
   "/join",
-  checkLoggedOut((req, res) =>
-    res.status(412).json({ error: "can't create new account whilst logged in" })
-  ) /* ditto */,
+  checkLoggedOut((req, res) => {
+    userCookie = req.cookies.token;
+    removeToken(userCookie);
+    res.cookie("token", "");
+  }),
   rateLimit({
     windowMs: 3600000,
     max: 5,
@@ -324,8 +341,8 @@ app.post(
               } else {
                 console.log(err);
                 res.status(500).json({
-                  error: "uncaught database error: " + err.code
-                }); // todo: don't do this on prod.
+                  error: "uncaught database error"
+                });
               }
             });
         } else {
@@ -377,7 +394,8 @@ app.post("/delete-account", checkLoggedIn(), async (req, res) => {
   var user = res.locals.requester;
 
   if (req.xhr && user) {
-    res.status(501).json({ error: "account deletion is not implemented yet" });
+    await users.delete({ _id: user._id });
+    res.status(200).json({ success: "account has been deleted" });
   } else {
     res.status(403).json({
       error: "not requested with xhr or no user found"
@@ -1008,6 +1026,40 @@ app.post("/users/:name/follow", checkLoggedIn(), async function (req, res) {
   }
 });
 
+app.post("/users/:name/ban", checkLoggedIn(), async function (req, res) {
+  var user = res.locals.requester;
+  if (req.xhr && user.admin) {
+    var userDB = await findUserData(req.params.name)
+    if (userDB) {
+      if (userDB.banned) {
+        await users.update({ _id: userDB._id }, { banned: false });
+        res.json({
+          ok: "now unbanned",
+          action: "unban"
+        });
+        addMessage(
+          userDB._id,
+          `You have been unbanned.`
+        );
+      } else {
+        await users.update({ _id: userDB._id }, { banned: false });
+        res.json({
+          ok: "banned",
+          action: "ban"
+        });
+        addMessage(
+          userDB._id,
+          `You have been banned.`
+        );
+      }
+    } else {
+      res.status(404).json({ error: "no user found" });
+    }
+  } else {
+    res.status(403).json({ error: "must be requested with xhr and must be an admin" });
+  }
+});
+
 app.get('/:user', async (req, res, next) => {
   // user redirect is second last so that if anything above exists then use that instead
   var username = req.params.user
@@ -1130,22 +1182,7 @@ function addMessage(id, text, time = Date.now()) {
 }
 
 function makeToken(length) {
-  // make login tokens used by the join and login systems
-  const set = "abcdefghijklmnopABCDEFGHIJKLMNOP0123456789";
-  var res = [
-    ...(function* () {
-      for (let i = 0; i < length; i++)
-        yield set[Math.floor(Math.random() * set.length)];
-    })()
-  ].join(""); // what the heck is this alien language
-
-  if (tokens.some(e => e.token === res)) {
-    // handle the really rare chance that a token already exists
-    console.log("the impossible has happend");
-    return makeToken(length);
-  } else {
-    return res;
-  }
+  return crypto.randomBytes(32);
 }
 
 function addToken(token, id, time = 21600000) {
