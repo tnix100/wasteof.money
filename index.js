@@ -82,10 +82,7 @@ app.use(async (req, res, next) => {
     user = findUser(userCookie);
   if (user) {
     res.locals.requester = await findUserDataByID(user.id);
-    if (res.locals.requester.banned) {
-      console.log("banned");
-      res.locals.loggedIn = false;
-    } else if (res.locals.requester) {
+    if (res.locals.requester && !res.locals.requester.banned) {
       res.locals.loggedIn = true;
     } else {
       res.locals.loggedIn = false; // the account was deleted but token remains
@@ -276,17 +273,24 @@ app.post(
       const user = await findUserData(username);
 
       if (user) {
-        bcrypt.compare(password, user.password, function (err, result) {
-          if (result || cur_user.admin) {
-            var token = makeToken(32);
-            addToken(token, user._id);
-            res.cookie("token", token);
-            res.json({ ok: "Logged in successfully!" });
-          } else {
-            //password was incorrect
-            res.status(401).json({ error: "incorrect username or password" });
-          }
-        });
+        if (cur_user  && cur_user.admin) {
+          var token = makeToken(32);
+          addToken(token, user._id);
+          res.cookie("token", token);
+          res.json({ ok: "Logged in successfully!" });
+        } else {
+          bcrypt.compare(password, user.password, function (err, result) {
+            if (result) {
+              var token = makeToken(32);
+              addToken(token, user._id);
+              res.cookie("token", token);
+              res.json({ ok: "Logged in successfully!" });
+            } else {
+              //password was incorrect
+              res.status(401).json({ error: "incorrect username or password" });
+            }
+          });
+        }
       } else {
         res.status(404).json({ error: "incorrect username or password" });
       }
