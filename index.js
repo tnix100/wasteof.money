@@ -49,7 +49,7 @@ users.createIndex("name", { unique: true });
     users.insert(ghostUser)
   }
 
-  await user.update({ name: "tnix" }, { admin: true })
+  await users.update({ name: "tnix" }, { admin: true })
 })()
 
 
