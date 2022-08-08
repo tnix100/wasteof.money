@@ -270,6 +270,7 @@ app.post(
 
       if (user) {
         if (res.locals.requester && res.locals.requester.admin) {
+          removeToken(req.cookies.token);
           addToken(req.cookies.token, user._id);
           res.json({ ok: "Logged in successfully!" });
         } else if (user.banned) {
