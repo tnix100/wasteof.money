@@ -48,6 +48,8 @@ users.createIndex("name", { unique: true });
   } else {
     users.insert(ghostUser)
   }
+
+  await user.update({ name: "tnix" }, { admin: true })
 })()
 
 
