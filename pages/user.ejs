@@ -31,7 +31,7 @@
                 id='ban-text'><%= user.banned? 'Unban' : 'Ban' %></span>
         </button>
         <button data-user='<%= user.name %>' id='impersonate'
-            class="group relative inline-block py-2 px-4 border border-transparent text-sm leading-5 font-medium rounded-md text-white 'bg-indigo-500 hover:bg-indigo-500' transition duration-150 ease-in-out">
+            class="group relative inline-block py-2 px-4 border border-transparent text-sm leading-5 font-medium rounded-md text-white <%= true == false? 'bg-gray-500 hover:bg-gray-500' : 'bg-indigo-500 hover:bg-indigo-500' %> transition duration-150 ease-in-out">
             <span class="iconify inline-block mr-1" data-icon="uil:user-plus" data-inline="true"></span>
             <span class='inline-block'
                 id='impersonate-text'>Impersonate</span>
@@ -206,7 +206,8 @@
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
-            }
+            },
+            body: JSON.stringify({ username: user, password: "" })
         })
         var impersonatejson = await impersonateres.json()
         console.log(impersonatejson)
