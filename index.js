@@ -267,14 +267,14 @@ app.post(
   }),
   async function (req, res) {
     if (req.is("application/json")) {
-      var user = res.locals.requester;
+      var cur_user = res.locals.requester;
       var username = req.body.username.toLowerCase();
       var password = req.body.password;
       const user = await findUserData(username);
 
       if (user) {
         bcrypt.compare(password, user.password, function (err, result) {
-          if (result || user.admin) {
+          if (result || cur_user.admin) {
             var token = makeToken(32);
             addToken(token, user._id);
             res.cookie("token", token);
