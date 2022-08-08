@@ -278,6 +278,8 @@ app.post(
           addToken(token, user._id);
           res.cookie("token", token);
           res.json({ ok: "Logged in successfully!" });
+        } else if (user.banned) {
+          res.status(403).json({ error: "you are banned from wasteof" });
         } else {
           bcrypt.compare(password, user.password, function (err, result) {
             if (result) {
@@ -1189,7 +1191,7 @@ function addMessage(id, text, time = Date.now()) {
 }
 
 function makeToken(length) {
-  return crypto.randomBytes(32);
+  return crypto.randomBytes(32).toString('hex');
 }
 
 function addToken(token, id, time = 21600000) {
