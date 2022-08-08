@@ -24,18 +24,18 @@
         </button>
         <% } %>
         <% if(loggedInUser && loggedInUser.admin) { %>
-            <button data-user='<%= user.name %>' id='ban'
-                class="group relative inline-block py-2 px-4 border border-transparent text-sm leading-5 font-medium rounded-md text-white <%= user.banned? 'bg-gray-500 hover:bg-gray-500' : 'bg-indigo-500 hover:bg-indigo-500' %> transition duration-150 ease-in-out">
-                <span class="iconify inline-block mr-1" data-icon="uil:user-plus" data-inline="true"></span>
-                <span class='inline-block'
-                    id='ban-text'><%= user.banned? 'Unban' : 'Ban' %></span>
-            </button>
-            <button data-user='<%= user.name %>' id='impersonate'
-                class="group relative inline-block py-2 px-4 border border-transparent text-sm leading-5 font-medium rounded-md text-white 'bg-indigo-500 hover:bg-indigo-500' transition duration-150 ease-in-out">
-                <span class="iconify inline-block mr-1" data-icon="uil:user-plus" data-inline="true"></span>
-                <span class='inline-block'
-                    id='impersonate-text'>Impersonate</span>
-            </button>
+        <button data-user='<%= user.name %>' id='ban'
+            class="group relative inline-block py-2 px-4 border border-transparent text-sm leading-5 font-medium rounded-md text-white <%= user.banned? 'bg-gray-500 hover:bg-gray-500' : 'bg-indigo-500 hover:bg-indigo-500' %> transition duration-150 ease-in-out">
+            <span class="iconify inline-block mr-1" data-icon="uil:user-plus" data-inline="true"></span>
+            <span class='inline-block'
+                id='ban-text'><%= user.banned? 'Unban' : 'Ban' %></span>
+        </button>
+        <button data-user='<%= user.name %>' id='impersonate'
+            class="group relative inline-block py-2 px-4 border border-transparent text-sm leading-5 font-medium rounded-md text-white 'bg-indigo-500 hover:bg-indigo-500' transition duration-150 ease-in-out">
+            <span class="iconify inline-block mr-1" data-icon="uil:user-plus" data-inline="true"></span>
+            <span class='inline-block'
+                id='impersonate-text'>Impersonate</span>
+        </button>
         <% } %>
         <p class="text-gray-700"><a :href='`/users/${user}/followers`'><span id='follower-count'><%= user.followers ? user.followers.length.toString() : '0' %></span> followers</a> | <a :href='`/users/${user}/following`'><span id='following-count'><%= user.following ? user.following.length.toString() : '0' %></span> following</a></p> <!-- todo: make api also find who the user is following -->
         <p class="text-gray-700 italic">id: <%= user._id %></p>
@@ -120,11 +120,13 @@
         followButton.addEventListener('click', e => {
             follow(followButton.dataset.user)
         })
-    } else if (banButton) {
+    }
+    if (banButton) {
         banButton.addEventListener('click', e => {
             ban(banButton.dataset.user)
         })
-    } else if (impersonateButton) {
+    }
+    if (impersonateButton) {
         impersonateButton.addEventListener('click', e => {
             impersonate(impersonateButton.dataset.user)
         })
