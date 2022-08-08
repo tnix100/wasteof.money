@@ -240,7 +240,7 @@
       })
       var data = await res.json()
       if (data.ok) {
-        document.location.href = '/'
+        window.location.reload();
       } else {
         document.getElementById('delete-alert').style.display = 'block'
         document.getElementById('delete-msg').innerText = data.error
