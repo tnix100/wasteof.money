@@ -1043,7 +1043,7 @@ app.post("/users/:name/ban", checkLoggedIn(), async function (req, res) {
     var userDB = await findUserData(req.params.name)
     if (userDB) {
       if (userDB.banned) {
-        await users.update({ _id: userDB._id }, { banned: false });
+        await users.update({ _id: userDB._id }, { $set: { banned: false } });
         res.json({
           ok: "now unbanned",
           action: "unban"
@@ -1053,7 +1053,7 @@ app.post("/users/:name/ban", checkLoggedIn(), async function (req, res) {
           `You have been unbanned.`
         );
       } else {
-        await users.update({ _id: userDB._id }, { banned: false });
+        await users.update({ _id: userDB._id }, { $set: { banned: false } });
         res.json({
           ok: "banned",
           action: "ban"
