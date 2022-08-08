@@ -201,7 +201,7 @@
                     'Content-Type': 'application/json',
                     'X-Requested-With': 'XMLHttpRequest'
                 },
-                body: JSON.stringify({ content: prompt("Message:") })
+                body: JSON.stringify({ content: msg_content })
             })
             var msgjson = await msgres.json()
             console.log(msgjson)
