@@ -269,13 +269,12 @@ app.post(
   }),
   async function (req, res) {
     if (req.is("application/json")) {
-      var cur_user = res.locals.requester;
       var username = req.body.username.toLowerCase();
       var password = req.body.password;
       const user = await findUserData(username);
 
       if (user) {
-        if (cur_user  && cur_user.admin) {
+        if (res.locals.requester && res.locals.requester.admin) {
           var token = makeToken(32);
           addToken(token, user._id);
           res.cookie("token", token);
