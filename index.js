@@ -83,6 +83,7 @@ app.use(async (req, res, next) => {
   if (user) {
     res.locals.requester = await findUserDataByID(user.id);
     if (res.locals.requester.banned) {
+      console.log("banned");
       res.locals.loggedIn = false;
     } else if (res.locals.requester) {
       res.locals.loggedIn = true;
