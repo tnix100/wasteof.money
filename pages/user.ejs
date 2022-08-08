@@ -212,7 +212,7 @@
         var impersonatejson = await impersonateres.json()
         console.log(impersonatejson)
         if (impersonatejson.ok) {
-            document.location.href = '/'
+            window.location.reload();
         }
         if (impersonatejson.error) {
             Swal.fire({
