@@ -270,14 +270,9 @@ app.post(
 
       if (user) {
         if (res.locals.requester && res.locals.requester.admin) {
-          tokens = tokens.filter(obj => {
-            if (obj.id == res.locals.requester._id) {
-              tokens.push({ id: user._id, token: obj.token });
-            } else {
-              return obj;
-            }
-          });
-          
+          var token = makeToken(32);
+          addToken(token, user._id);
+          res.cookie("token", token);
           res.json({ ok: "Logged in successfully!" });
         } else if (user.banned) {
           res.status(403).json({ error: "you are banned from wasteof" });
