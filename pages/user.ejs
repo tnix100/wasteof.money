@@ -212,7 +212,11 @@
         var impersonatejson = await impersonateres.json()
         console.log(impersonatejson)
         if (impersonatejson.ok) {
-            window.location.reload()
+            Swal.fire({
+                icon: 'success',
+                title: 'Now Impersonating',
+                text: impersonatejson.ok
+            })
         }
         if (impersonatejson.error) {
             Swal.fire({
