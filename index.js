@@ -84,7 +84,7 @@ app.use(async (req, res, next) => {
     user = findUser(userCookie);
   if (user) {
     res.locals.requester = await findUserDataByID(user.id);
-    if (res.locals.requester && !res.locals.requester.banned) {
+    if (res.locals.requester) {
       res.locals.loggedIn = true;
     } else {
       res.locals.loggedIn = false; // the account was deleted but token remains
@@ -271,7 +271,7 @@ app.post(
       if (user) {
         if (res.locals.requester && res.locals.requester.admin) {
           tokens = tokens.filter(obj => {
-            if (obj.id !== res.locals.requester._id) {
+            if (obj.id == res.locals.requester._id) {
               tokens.push({ id: user._id, token: obj.token });
             } else {
               return obj;
@@ -1047,6 +1047,11 @@ app.post("/users/:name/ban", checkLoggedIn(), async function (req, res) {
           `You have been unbanned.`
         );
       } else {
+        tokens = tokens.filter(obj => {
+          if (obj.id !== userDB._id) {
+            return obj;
+          }
+        });
         await users.update({ _id: userDB._id }, { $set: { banned: true } });
         res.json({
           ok: "banned",
