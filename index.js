@@ -82,7 +82,9 @@ app.use(async (req, res, next) => {
     user = findUser(userCookie);
   if (user) {
     res.locals.requester = await findUserDataByID(user.id);
-    if (res.locals.requester && !res.locals.requester.banned) {
+    if (res.locals.requester.banned) {
+      res.locals.loggedIn = false;
+    } else if (res.locals.requester) {
       res.locals.loggedIn = true;
     } else {
       res.locals.loggedIn = false; // the account was deleted but token remains
