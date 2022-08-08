@@ -220,7 +220,7 @@ app.get("/docs/:page", async (req, res, next) => {
   });
 });
 
-app.get("/login", checkLoggedOut(), function (req, res) {
+app.get("/login", function (req, res) {
   ejs.renderFile(
     __dirname + "/pages/login.ejs",
     { user: null, loggedIn: false }, // we know they're logged out because of the checkLoggedOut middleware
