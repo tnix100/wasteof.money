@@ -251,6 +251,9 @@ app.get("/logout", checkLoggedIn(), function (req, res) {
 
 app.post(
   "/login",
+  checkLoggedOut((req, res) => {
+    res.cookie("token", "");
+  }),
   rateLimit({
     windowMs: 60000,
     max: 5,
@@ -300,6 +303,9 @@ app.post(
 
 app.post(
   "/join",
+  checkLoggedOut((req, res) => {
+    res.cookie("token", "");
+  }),
   rateLimit({
     windowMs: 3600000,
     max: 5,
