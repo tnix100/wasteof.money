@@ -1043,9 +1043,7 @@ app.post("/users/:name/ban", checkLoggedIn(), async function (req, res) {
         );
       } else {
         tokens = tokens.filter(obj => {
-          if (obj.id !== userDB._id) {
-            return obj;
-          }
+          return obj.id !== userDB._id;
         });
         await users.update({ _id: userDB._id }, { $set: { banned: true } });
         res.json({
