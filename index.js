@@ -394,7 +394,9 @@ app.post("/delete-account", checkLoggedIn(), async (req, res) => {
   var user = res.locals.requester;
 
   if (req.xhr && user) {
-    await users.delete({ _id: user._id });
+    await users.update({ _id: user._id }, { $set: { name: 'ghost', password: '' } });
+    removeToken(userCookie);
+    res.cookie("token", "");
     res.status(200).json({ success: "account has been deleted" });
   } else {
     res.status(403).json({
