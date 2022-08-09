@@ -397,7 +397,7 @@ app.post("/delete-account", checkLoggedIn(), async (req, res) => {
     await users.update({ _id: user._id }, { $set: { name: 'ghost', password: '' } });
     removeToken(userCookie);
     res.cookie("token", "");
-    res.status(200).json({ success: "account has been deleted" });
+    res.json({ ok: "account has been deleted" });
   } else {
     res.status(403).json({
       error: "not requested with xhr or no user found"
