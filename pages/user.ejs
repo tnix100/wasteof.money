@@ -226,7 +226,7 @@
     }
 
     async function ban(user) {
-        if (document.getElementById('ban-text').innerText == `Unban`) var banReason = prompt("Ban reason (will be shown to user):")
+        if (document.getElementById('ban-text').innerText == `Ban`) var banReason = prompt("Ban reason (will be shown to user):")
         if (banReason !== null || document.getElementById('ban-text').innerText == `Unban`) {
             console.log(`gonna ban ${user}`)
             var banres = await fetch(`/users/${user}/ban`, {
