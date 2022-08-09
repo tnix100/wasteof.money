@@ -48,6 +48,8 @@
             <span class='inline-block'
                 id='admin-text'><%= user.admin? 'Demote' : 'Promote' %></span>
         </button>
+        <br />
+        <span>Last ban reason: <%= user.banReason %></span>
         <% } %>
         <p class="text-gray-700"><a :href='`/users/${user}/followers`'><span id='follower-count'><%= user.followers ? user.followers.length.toString() : '0' %></span> followers</a> | <a :href='`/users/${user}/following`'><span id='following-count'><%= user.following ? user.following.length.toString() : '0' %></span> following</a></p> <!-- todo: make api also find who the user is following -->
         <p class="text-gray-700 italic">id: <%= user._id %></p>
@@ -224,45 +226,49 @@
     }
 
     async function ban(user) {
-        console.log(`gonna ban ${user}`)
-        var banres = await fetch(`/users/${user}/ban`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        })
-        var banjson = await banres.json()
-        console.log(banjson)
-        if (banjson.ok) {
-            if (banjson.action == 'ban') {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Banned user',
-                    text: banjson.ok
-                })
-                document.getElementById('ban-text').innerText = `Unban`
-                banButton.classList.remove('bg-indigo-500', 'hover:bg-indigo-500')
-                banButton.classList.add('bg-gray-500', 'hover:bg-gray-500')
-            }
-            if (banjson.action == 'unban') {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Unbanned user',
-                    text: banjson.ok
-                })
-                document.getElementById('ban-text').innerText = `Ban`
-                banButton.classList.remove('bg-gray-500', 'hover:bg-gray-500')
-                banButton.classList.add('bg-indigo-500', 'hover:bg-indigo-500')
-            }
-        }
-        if (banjson.error) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Failed to ban',
-                text: banjson.error,
-                footer: '<a href="https://github.com/jeffalo/wasteof.money/issues" target="_blank" rel="noopener">Report issues</a>'
+        var ban_reason = prompt("Ban reason (will be shown to user):")
+        if (ban_reason !== null) {
+            console.log(`gonna ban ${user}`)
+            var banres = await fetch(`/users/${user}/ban`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ reason: ban_reason })
             })
+            var banjson = await banres.json()
+            console.log(banjson)
+            if (banjson.ok) {
+                if (banjson.action == 'ban') {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Banned user',
+                        text: banjson.ok
+                    })
+                    document.getElementById('ban-text').innerText = `Unban`
+                    banButton.classList.remove('bg-indigo-500', 'hover:bg-indigo-500')
+                    banButton.classList.add('bg-gray-500', 'hover:bg-gray-500')
+                }
+                if (banjson.action == 'unban') {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Unbanned user',
+                        text: banjson.ok
+                    })
+                    document.getElementById('ban-text').innerText = `Ban`
+                    banButton.classList.remove('bg-gray-500', 'hover:bg-gray-500')
+                    banButton.classList.add('bg-indigo-500', 'hover:bg-indigo-500')
+                }
+            }
+            if (banjson.error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Failed to ban',
+                    text: banjson.error,
+                    footer: '<a href="https://github.com/jeffalo/wasteof.money/issues" target="_blank" rel="noopener">Report issues</a>'
+                })
+            }
         }
     }
 
@@ -291,45 +297,47 @@
     }
 
     async function admin(user) {
-        console.log(`gonna make ${user} admin`)
-        var adminres = await fetch(`/users/${user}/admin`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        })
-        var adminjson = await adminres.json()
-        console.log(adminjson)
-        if (adminjson.ok) {
-            if (adminjson.action == 'promote') {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Promoted user',
-                    text: adminjson.ok
-                })
-                document.getElementById('admin-text').innerText = `Demote`
-                adminButton.classList.remove('bg-indigo-500', 'hover:bg-indigo-500')
-                adminButton.classList.add('bg-gray-500', 'hover:bg-gray-500')
-            }
-            if (adminjson.action == 'demote') {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Demoted user',
-                    text: adminjson.ok
-                })
-                document.getElementById('admin-text').innerText = `Promote`
-                adminButton.classList.remove('bg-gray-500', 'hover:bg-gray-500')
-                adminButton.classList.add('bg-indigo-500', 'hover:bg-indigo-500')
-            }
-        }
-        if (adminjson.error) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Failed to promote/demote',
-                text: adminjson.error,
-                footer: '<a href="https://github.com/jeffalo/wasteof.money/issues" target="_blank" rel="noopener">Report issues</a>'
+        if (confirm("Are you sure you want to promote/demote this user?")) {
+            console.log(`gonna make ${user} admin`)
+            var adminres = await fetch(`/users/${user}/admin`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
             })
+            var adminjson = await adminres.json()
+            console.log(adminjson)
+            if (adminjson.ok) {
+                if (adminjson.action == 'promote') {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Promoted user',
+                        text: adminjson.ok
+                    })
+                    document.getElementById('admin-text').innerText = `Demote`
+                    adminButton.classList.remove('bg-indigo-500', 'hover:bg-indigo-500')
+                    adminButton.classList.add('bg-gray-500', 'hover:bg-gray-500')
+                }
+                if (adminjson.action == 'demote') {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Demoted user',
+                        text: adminjson.ok
+                    })
+                    document.getElementById('admin-text').innerText = `Promote`
+                    adminButton.classList.remove('bg-gray-500', 'hover:bg-gray-500')
+                    adminButton.classList.add('bg-indigo-500', 'hover:bg-indigo-500')
+                }
+            }
+            if (adminjson.error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Failed to promote/demote',
+                    text: adminjson.error,
+                    footer: '<a href="https://github.com/jeffalo/wasteof.money/issues" target="_blank" rel="noopener">Report issues</a>'
+                })
+            }
         }
     }
 </script>

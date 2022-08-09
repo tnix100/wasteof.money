@@ -270,7 +270,7 @@ app.post(
 
       if (user) {
         if (user.banned) {
-          res.status(403).json({ error: "user is currently banned" });
+          res.status(403).json({ error: `user is currently banned. reason: ${user.banReason}` });
         } else if (res.locals.requester && res.locals.requester.admin) {
           var token = makeToken(32);
           addToken(token, user._id);
@@ -1063,7 +1063,7 @@ app.post("/users/:name/ban", checkLoggedIn(), async function (req, res) {
           `You have been unbanned.`
         );
       } else {
-        await users.update({ _id: userDB._id }, { $set: { banned: true } });
+        await users.update({ _id: userDB._id }, { $set: { banned: true, banReason: req.body.reason } });
         res.json({
           ok: "successfully banned user",
           action: "ban"
