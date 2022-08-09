@@ -391,17 +391,23 @@ app.post("/update-username", checkLoggedIn(), async (req, res) => {
 });
 
 app.post("/delete-account", checkLoggedIn(), async (req, res) => {
-  var user = res.locals.requester;
+  var userCookie = req.cookies.token,
+    user = res.locals.requester,
 
-  if (req.xhr && user) {
-    await users.update({ _id: user._id }, { $set: { name: 'ghost', password: '' } });
-    removeToken(userCookie);
-    res.cookie("token", "");
-    res.json({ ok: "account has been deleted" });
+  if (req.is("application/json")) {
+    try {
+      await users.delete({ _id: user._id });
+      removeToken(userCookie);
+      res.cookie("token", "");
+      res.json({ ok: username });
+    } catch (err) {
+      console.log(err);
+      res
+        .status(500)
+        .json({ error: "uncaught database error: " + err.code }); // todo: don't do this on prod.
+    }
   } else {
-    res.status(403).json({
-      error: "not requested with xhr or no user found"
-    }); // seperate this thing up
+    res.status(403).json({ error: "not made with xhr" }); // is this the right status?
   }
 });
 
