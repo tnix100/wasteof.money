@@ -239,12 +239,7 @@
         }
       })
       var data = await res.json()
-      if (data.ok) {
-        document.location.href = '/'
-      } else {
-        document.getElementById('delete-alert').style.display = 'block'
-        document.getElementById('delete-msg').innerText = data.error
-      }
+      document.location.href = '/'
     }
   </script>
   <%- include('../partials/scripts.ejs'); %>
