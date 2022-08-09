@@ -392,7 +392,7 @@ app.post("/update-username", checkLoggedIn(), async (req, res) => {
 
 app.post("/delete-account", checkLoggedIn(), async (req, res) => {
   var userCookie = req.cookies.token,
-    user = res.locals.requester,
+    user = res.locals.requester;
 
   if (req.is("application/json")) {
     try {
