@@ -49,7 +49,7 @@
                 id='admin-text'><%= user.admin? 'Demote' : 'Promote' %></span>
         </button>
         <br />
-        <span>Last ban reason: <%= user.banReason %></span>
+        <span id='ban-reason'>Last ban reason: <%= user.banReason %></span>
         <% } %>
         <p class="text-gray-700"><a :href='`/users/${user}/followers`'><span id='follower-count'><%= user.followers ? user.followers.length.toString() : '0' %></span> followers</a> | <a :href='`/users/${user}/following`'><span id='following-count'><%= user.following ? user.following.length.toString() : '0' %></span> following</a></p> <!-- todo: make api also find who the user is following -->
         <p class="text-gray-700 italic">id: <%= user._id %></p>
@@ -226,8 +226,8 @@
     }
 
     async function ban(user) {
-        var ban_reason = prompt("Ban reason (will be shown to user):")
-        if (ban_reason !== null) {
+        var banReason = prompt("Ban reason (will be shown to user):")
+        if (banReason !== null) {
             console.log(`gonna ban ${user}`)
             var banres = await fetch(`/users/${user}/ban`, {
                 method: 'POST',
@@ -235,7 +235,7 @@
                     'Content-Type': 'application/json',
                     'X-Requested-With': 'XMLHttpRequest'
                 },
-                body: JSON.stringify({ reason: ban_reason })
+                body: JSON.stringify({ reason: banReason })
             })
             var banjson = await banres.json()
             console.log(banjson)
@@ -247,6 +247,7 @@
                         text: banjson.ok
                     })
                     document.getElementById('ban-text').innerText = `Unban`
+                    document.getElementById('ban-reason').innerText = banReason
                     banButton.classList.remove('bg-indigo-500', 'hover:bg-indigo-500')
                     banButton.classList.add('bg-gray-500', 'hover:bg-gray-500')
                 }
