@@ -396,7 +396,7 @@ app.post("/delete-account", checkLoggedIn(), async (req, res) => {
 
   if (req.is("application/json")) {
     try {
-      await users.remove({ _id: user._id });
+      users.remove({ _id: user._id });
       removeToken(userCookie);
       res.cookie("token", "");
       res.json({ ok: username });
